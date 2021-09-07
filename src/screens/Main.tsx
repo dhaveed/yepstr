@@ -10,8 +10,12 @@ import { HEADER_HEIGHT, MIN_HEADER_HEIGHT } from '../constants/HeaderConstants';
 
 const BASE_URL = 'https://deckofcardsapi.com/api/deck';
 
-const suits = ['Clubs', 'Diamonds', 'Hearts', 'Spades'];
-
+const specials: any = {
+  ACE: 1,
+  JACK: 11,
+  QUEEN: 12,
+  KING: 13,
+};
 const Main: React.FC = () => {
   const [gameDeck, setGameDeck] = useState({});
   const [previousCard, setPreviousCard] = useState<CardProps[]>([]);
@@ -22,6 +26,7 @@ const Main: React.FC = () => {
 
   useEffect(() => {
     initGame();
+    getIntValue('KING');
   }, []);
 
   const initGame = async (): Promise<any> => {
@@ -29,6 +34,7 @@ const Main: React.FC = () => {
     const data: any = await res.json();
     setGameDeck(data);
     // console.log(data);
+    // @ts-ignore
     await drawCard(data.deck_id);
     return { ...data };
   };
@@ -47,11 +53,11 @@ const Main: React.FC = () => {
 
     if (type === 'low') {
       console.log(previous[0].value, data.cards[0].value);
-      if (previous[0].value >= data.cards[0].value) {
+      if (getIntValue(previous[0].value) >= getIntValue(data.cards[0].value)) {
         setScore(score + 1);
       }
     } else if (type === 'high') {
-      if (previous[0].value <= data.cards[0].value) {
+      if (getIntValue(previous[0].value) <= getIntValue(data.cards[0].value)) {
         setScore(score + 1);
       }
     } else {
@@ -67,6 +73,19 @@ const Main: React.FC = () => {
     // console.log(`${type} button was pressed`);
     // @ts-ignore
     drawCard(gameDeck.deck_id, type);
+  };
+
+  //we need to convert the values to numbers
+  const getIntValue: any = (value: string) => {
+    let retVal;
+    let numberVal: number = parseInt(value) || 0;
+
+    if (numberVal > 0) {
+      retVal = numberVal;
+    } else {
+      retVal = specials[value];
+    }
+    return retVal;
   };
 
   return (
